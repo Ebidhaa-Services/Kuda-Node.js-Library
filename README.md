@@ -80,9 +80,9 @@ const onboardUser = async(email, phoneNumber, firstName, lastName, trackingRefer
 
 ## Contribution & Issues
 
-- Simple fork the repo and make your changes
-- then make a pull request
-- You can also open issues in case you need support
+- Simply **fork the repo**, make changes and **make a pull request**
+- 
+- You can open an issue for support or suggestions
 
 ## Authors
 
