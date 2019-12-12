@@ -1,31 +1,74 @@
-const fs = require('fs')
-// const { aesEncrypt, aesDecrypt } = require('./algorithms/aes')
+const axios = require('axios')
+const shortid = require('shortid')
+
+// import algo-methods
+const { aesEncrypt, aesDecrypt } = require('./algorithms/aes')
 const { RSAEncrypt, RSADecrypt } = require('./algorithms/rsa')
 
-const test = () => new Promise((resolve, reject) => {
-  (async () => {
+/**
+ * @description initialize the Kuda wrapper function
+ * @param {object} param => publicKeyPath, privateKeyPath, clientKey
+ * @return {function} request function
+ */
+function Kuda (param) {
+  if (!param) return console.log('Error: publicKey, privateKey, clientKey are required!')
+
+  const { publicKey, privateKey, clientKey } = param
+  const password = `${clientKey}-${shortid.generate().substring(0, 5)}`
+
+  /**
+   * makes an encrypted call to Kuda API
+   * @param {object} params => serviceType, requestRef, data
+   * @param {function} callback gets called with the result(data) object
+   * @return {object} data return decrypted data response object
+   */
+  async function request (params, callback) {
+    if (!params) return console.log('Error: serviceType, requestRef and data are required!')
+
+    const { serviceType, requestRef, data } = params
+
+    const payload = JSON.stringify({
+      serviceType,
+      requestRef,
+      data
+    })
+
     try {
-      const publicKey = fs.readFileSync('./kuda.PUBLIC.xml').toString()
-      const privateKey = fs.readFileSync('./0udafeQMc8rvwZm2Lq4b.xml').toString()
+      // aes encrypt payload with password
+      const encryptedPayload = await aesEncrypt(payload, password)
+      // rsa encrypt password with public key
+      const encryptedPassword = await RSAEncrypt(password, publicKey)
 
-      const e = await RSAEncrypt(JSON.stringify({
-        name: 'jalasem',
-        email: 'kgasta@gmail.com'
-      }), publicKey)
-
-      const d = await RSADecrypt(e, privateKey)
-      resolve({
-        e,
-        d: JSON.parse(d)
+      // make encrypted api request to Kuda Bank
+      const { data: encryptedResponse } = await axios.post('https://kudaopenapi.azurewebsites.net/v1', {
+        data: encryptedPayload
+      }, {
+        headers: {
+          password: encryptedPassword
+        }
       })
-    } catch (err) {
-      resolve(err)
-    }
-  })()
-})
 
-test().then(r => {
-  console.log(JSON.stringify(r, null, 2))
-}).catch(e => {
-  console.log(e)
-})
+      // plaintext = RSA decrypt password with our privateKey
+      const plaintext = await RSADecrypt(encryptedResponse.password, privateKey).toString()
+      // data = AES decrypt data with plaintext
+      let data = await aesDecrypt(encryptedResponse.data, plaintext)
+      if (typeof data === 'string') data = JSON.parse(data)
+
+      // console.log('encrypted response:', JSON.stringify({
+      //   encryptedResponse,
+      //   plaintext,
+      //   data: JSON.parse(data)
+      // }, null, 2))
+
+      if (callback) return callback(data)
+
+      return data
+    } catch (err) {
+      console.log(err.stack)
+    }
+  }
+
+  return request
+}
+
+module.exports = Kuda
