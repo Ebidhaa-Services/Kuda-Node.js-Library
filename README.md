@@ -64,7 +64,17 @@ kuda(
     console.log(JSON.stringify(data, null, 2));
   }
 );
+
+// it can also be called with in an async await fashion like so
+const onboardUser = async(email, phoneNumber, firstName, lastName, trackingReference) => {
+  const response = await kuda({
+    serviceType: 'CREATE_VIRTUAL_ACCOUNT',
+    requestRef: Number, // like Math.floor(Math.random() * 1000000000000 + 1)
+    data: { email, phoneNumber, firstName, lastName, trackingReference }
+  })
+}
 ```
+
 
 > Refer to documentation for respective data types for each fields in the payload
 
