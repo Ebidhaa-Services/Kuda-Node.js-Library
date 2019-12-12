@@ -81,7 +81,6 @@ const onboardUser = async(email, phoneNumber, firstName, lastName, trackingRefer
 ## Contribution & Issues
 
 - Simply **fork the repo**, make changes and **make a pull request**
-- 
 - You can open an issue for support or suggestions
 
 ## Authors
