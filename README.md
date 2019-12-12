@@ -1,2 +1,86 @@
 # Kuda Node.js Library
 
+NodeJS wrapper for making secure request to Kuda API
+
+## Getting started
+
+> - paste your private and public key (both in XML format) in your project directory
+> - Your client key is the name of your private key file
+
+## Using the library
+
+While the repo is not yet on npm, simply clone this repo and run `yarn` or `npm install`
+
+### Library setup
+
+```js
+const fs = require("fs");
+const Kuda = require("./index"); // or require('kuda-node') if it becomes an npm package and that's the name
+
+const publicKey = fs.readFileSync("./kuda.public.xml"); // or path to your kuda public key
+const privateKey = fs.readFileSync("./path-to-private-key.xml"); // or path to your kuda kuda private key
+const clientKey = "name-of-private-key-file"; // name of private key file without the .xml suffix (extension)
+
+const kuda = Kuda("./index")({
+  publicKey,
+  privateKey,
+  clientKey
+}); // this initialize the Kuda function
+```
+
+### Making a request
+
+```js
+kuda({
+  serviceType: "SERVICE_TYPE",
+  requestRef: "requestReference",
+  data: {
+    param: value
+  }
+});
+```
+
+### Sample request
+
+```js
+// account creation
+const shortid = require("shortid"); // this libarary will generate random id for you. You can install with `yarn add shortid` or `npm i shortid`. You can use any other random key generatring library of your choice
+
+kuda(
+  {
+    serviceType: "CREATE_VIRTUAL_ACCOUNT",
+    requestRef: Math.floor(Math.random() * 1000000000000 + 1), // you can generate your random number your own way. This is just an example.
+    data: {
+      email: "ajala@obi.com",
+      phoneNumber: "08012345678",
+      firstName: "Ajala",
+      lastName: "Obi",
+      trackingReference: "vAcc-" + shortid.generate() // you can generate your trackingReference some other way you choose.
+    }
+  },
+  data => {
+    // data => decrypted response from Kuda API
+    // do anything with your data
+    console.log(JSON.stringify(data, null, 2));
+  }
+);
+```
+
+> Refer to documentation for respective data types for each fields in the payload
+
+## Contribution & Issues
+
+- Simple fork the repo and make your changes
+- then make a pull request
+- You can also open issues in case you need support
+
+## Authors
+
+- [Ajala Abdulsamii](https://codementor.io/jalasem)
+- [Abdulazeez Murainah](https://github.com/gceezle)
+- [Azeez Adio](https://github.com/azeezadio)
+
+# Acknowledgements
+
+- Kuda Bank Team
+- Ebidhaa Services Tech Team
